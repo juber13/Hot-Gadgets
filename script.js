@@ -6,90 +6,91 @@ var modal = document.getElementById("myModal");
 let close = document.getElementsByClassName('close')[0];
 let details = document.getElementsByClassName('details')[0];
 let loading = false;
-let result = [];
-let startIndex = 0;
-let initialRenderIndex = 6;
+let initialRenderIndex = 11;
+let result;
 
 async function fetchApi(text) {
   const api = `https://openapi.programming-hero.com/api/phones?search=${text}`;
+  console.log(api)
+  // return fetch(api).then(res => res.json()).then(data => data.data).catch((err) => console.log(err));
   try {
+    loading = true;
     const res = await fetch(api);
-    const items = await res.json();
-     return items.data;
-    } catch (err) {
+    const result = await res.json();
+    loading = false;
+    return result.data;
+  } catch (err) {
     console.log(err)
   }
 
 }
 
-fetchApi(searchText);
-let data = [];
-
+let data;
 
 const createPhone = async (text) => {
-  const phones =  await fetchApi(text);
-    result = phones;
-    // initialRenderIndex = result.length > 6 ? 6 : result.length;
-    // data = result.slice(startIndex , initialRenderIndex);
-    data.push(...result.slice(startIndex , initialRenderIndex))
-    console.log(data);
-    let phone = data.map((item) => {
+  if (loading) {
+    container.innerHTML = "<div class='loading'></div>";
+  } else {
+    const phones = await fetchApi(text);
+    let buttonState = false;
+
+    if (phones.length > 5) {
+      result = phones.slice(0, initialRenderIndex);
+      buttonState = true;
+    } else {
+      buttonState = false;
+      result = phones;
+    }
+
+    console.log(result);
+
+    let phone = result.map((item) => {
       const { phone_name, image, slug } = item;
       return `<div class="phone">
-      <img src=${image} alt="">
-      <h4>${phone_name} </h4>
-      <p class="desc">There are many variations of passages of available, but the majority have suffered</p>
-      <button class="btn" data-value=${slug} id="details-btn">SHOW DETAILS</button>
-      </div>
-      `
+                <img src=${image} alt="">
+                <h4>${phone_name} </h4>
+                <p class="desc">There are many variations of passages of available, but the majority have suffered</p>
+                <button class="btn" data-value=${slug} id="details-btn">SHOW DETAILS</button>
+                </div>
+              `
     }).join("");
-    
+
     const btnContainer = document.getElementsByClassName('btn-container')[0];
-    if (result.length >= 6) {
+    if (buttonState == true) {
       btnContainer.innerHTML = "";
       let button = document.createElement('button');
       button.classList.add('btn');
-      button.textContent = result.length - data.length + " More";
+      button.textContent = "Show More";
       btnContainer.appendChild(button);
     }
-    
+
     btnContainer.addEventListener('click', showMorePhones);
     container.innerHTML = phone;
     Array.from(container.children).forEach(child => child.addEventListener('click', showDetails))
   }
-  
-  
-  
-  async function showMorePhones(e) {
+}
+
+
+let index = 11;
+async function showMorePhones(e) {
   if (e.target.nodeName == "BUTTON") {
-    startIndex = initialRenderIndex;  
-    initialRenderIndex += 6;
-    //
-    // let leftToRender = result.length - initialRenderIndex;/
-    // console.log(leftToRender)
-    // startIndex = 0;
-    // initialRenderIndex;
-    let itemLeftToRender = result.length - initialRenderIndex;
-    console.log(itemLeftToRender)
-    // console.log(result.length)
-    // console.log(data.length)
+    const d = await fetchApi(searchText);
+    const items = d.splice(index, 11);
+    index += 11;
+    result.push(...items);
+    initialRenderIndex += 11;
     createPhone(searchText);
-    console.log(startIndex , initialRenderIndex)
 
-    if(result.length - data.length  < 6){
-      initialRenderIndex = itemLeftToRender;
+    if(initialRenderIndex >= d.length){
+       this.style.display = "none";
     }
+ }
+}
 
-    if(data.length >= result.length){
-        this.style.display = "none";
-      }
-      
-      
-    }
-  }
-  
-  
-  createPhone(searchText);
+
+createPhone(searchText);
+
+
 async function showDetails(e) {
   if (e.target.nodeName == 'BUTTON') {
     modal.classList.add('active');
@@ -131,4 +132,3 @@ const closeModal = () => {
 
 
 close.addEventListener('click', closeModal);
-
