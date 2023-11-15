@@ -1,5 +1,5 @@
 let phones = []
-let searchText = 'oppo';
+let searchText = '13';
 const form = document.getElementById('form');
 const container = document.getElementsByClassName('phone-list-container')[0]
 var modal = document.getElementById("myModal");
